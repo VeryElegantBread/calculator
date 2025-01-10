@@ -29,5 +29,5 @@ The current operations you can do:
 | Modulos        | %    | 7 % 3 = 1 |
 | Exponents      | ^    | 2 ^ 3 = 8 |
 ## Issues
-- Exponents can only do whole numbers > 0
+- Can crash if you don't format your equation like it likes
 - Doesn't follow order of operations

@@ -36,16 +36,10 @@ fn math(base_equation: String) -> Option<f64> {
 
 
     let mut current_result = None;
-    let mut parenthises: u8 = 0;
-
     let chars: Vec<char> = equation.chars().collect();
     for char_num in 0..chars.len() {
         let char = chars[char_num];
-        if char == '(' {
-            parenthises += 1;
-        } else if char == ')' {
-            parenthises -= 1;
-        } else if ['+', '-', '*', '/', '%', '^'].iter().any(|&i| i == char) && parenthises == 0 {
+        if ['+', '-', '*', '/', '%', '^'].iter().any(|&i| i == char) && chars[char_num + 1] == '_' {
             let num1;
             let num2;
             if let Some(value) = current_result {
@@ -83,7 +77,6 @@ fn math_loop() {
             .read_line(&mut input)
             .expect("Failed to read line");
 
-        // Remove the trailing newline character
         let input = input.trim();
         if let Some(value) = math(input.to_string() + "_") {
             println!("{:?}", value);
@@ -113,13 +106,7 @@ fn do_operation(num1: f64, num2: f64, operation: char) -> f64 {
         '*' => num1 * num2,
         '/' => num1 / num2,
         '%' => num1 % num2,
-        '^' => {
-            let mut result = num1;
-            for _ in 1..num2 as usize {
-                result *= num1;
-            }
-            result
-        },
+        '^' => num1.powf(num2),
         _ => panic!("HOW??"),
     }
 }
