@@ -19,22 +19,7 @@ fn main() {
 
 
 fn math(base_equation: String) -> Option<f64> {
-    let mut equation = String::new();
-    let mut parenthises: u8 = 0;
-    for char in base_equation.chars() {
-        if char == ' ' && parenthises == 0 {
-            equation.push('_');
-        } else {
-            equation.push(char);
-            if char == '(' {
-                parenthises += 1;
-            } else if char == ')' {
-                parenthises -= 1;
-            }
-        }
-    }
-    equation.push('_');
-
+    let equation = format_equation(base_equation);
 
     let mut current_result = None;
     let chars: Vec<char> = equation.chars().collect();
@@ -110,6 +95,28 @@ fn do_operation(num1: f64, num2: f64, operation: char) -> f64 {
         '^' => num1.powf(num2),
         _ => panic!("HOW??"),
     }
+}
+
+
+
+
+fn format_equation(base_equation: String) -> String {
+    let mut equation = String::new();
+    let mut parenthises: u8 = 0;
+    for char in base_equation.chars() {
+        if char == ' ' && parenthises == 0 {
+            equation.push('_');
+        } else {
+            equation.push(char);
+            if char == '(' {
+                parenthises += 1;
+            } else if char == ')' {
+                parenthises -= 1;
+            }
+        }
+    }
+    equation.push('_');
+    equation
 }
 
 
