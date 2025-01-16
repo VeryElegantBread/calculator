@@ -1,5 +1,5 @@
 use core::panic;
-use std::{env::args, io::{self, Write}};
+use std::{collections::HashMap, env::args, io::{self, Write}};
 
 
 
@@ -11,14 +11,14 @@ fn main() {
 
     if equation.is_empty() {
         math_loop()
-    } else if let Some(value) = math(equation[1..].to_string()) {
+    } else if let Some(value) = math(equation[1..].to_string(), &HashMap::new()) {
         println!("{:?}", value);
     }
 }
 
 
 
-fn math(base_equation: String) -> Option<f64> {
+fn math(base_equation: String, variables: &HashMap<String, String>) -> Option<f64> {
     let equation = format_equation(base_equation);
 
     let mut current_result = None;
@@ -30,12 +30,12 @@ fn math(base_equation: String) -> Option<f64> {
             let num2;
             if let Some(value) = current_result {
                 num1 = value;
-            } else if let Some(value) = get_value(equation[0..char_num - 1].to_string()) {
+            } else if let Some(value) = get_value(equation[0..char_num - 1].to_string(), variables) {
                 num1 = value;
             } else {
                 return None;
             }
-            if let Some(value) = get_value(equation[char_num + 2..].split('_').next().expect("no second number found").to_string()) {
+            if let Some(value) = get_value(equation[char_num + 2..].split('_').next().expect("no second number found").to_string(), variables) {
                 num2 = value;
             } else {
                 return None;
@@ -47,13 +47,14 @@ fn math(base_equation: String) -> Option<f64> {
     if let Some(result) = current_result {
         Some(result)
     } else {
-        get_value(equation[..equation.len() - 1].to_string())
+        get_value(equation[..equation.len() - 1].to_string(), variables)
     }
 }
 
 
 
 fn math_loop() {
+    let mut variables: HashMap<String, String> = HashMap::new();
     loop {
         print!("--> ");
         io::stdout().flush().expect("Failed to flush stdout");
@@ -64,7 +65,16 @@ fn math_loop() {
             .expect("Failed to read line");
 
         let input = input.trim();
-        if let Some(value) = math(input.to_string()) {
+
+        let split_input: Vec<_> = input.split(' ').collect();
+        if split_input.len() > 2 && split_input[1] == "=" {
+            let equation = input[split_input[0].len() + 3..].to_string();
+            if let Some(value) = math(equation.to_string(), &variables) {
+                let variable_name = split_input[0];
+                variables.insert(variable_name.to_string(), equation);
+                println!("{} = {:?}", variable_name, value);
+            }
+        } else if let Some(value) = math(input.to_string(), &variables) {
             println!("{:?}", value);
         }
     }
@@ -72,11 +82,13 @@ fn math_loop() {
 
 
 
-fn get_value(string: String) -> Option<f64> {
+fn get_value(string: String, variables: &HashMap<String, String>) -> Option<f64> {
     if string.starts_with('(') {
-        math(string[1..string.len() - 1].to_string() + "_")
+        math(string[1..string.len() - 1].to_string() + "_", variables)
     } else if let Ok(float) = string.parse::<f64>() {
         Some(float)
+    } else if let Some(value) = variables.get(&string) {
+        math(value.to_string(), variables)
     } else {
         println!("unknown: {string:?}");
         None
@@ -128,68 +140,68 @@ mod tests {
 
     #[test]
     fn misc_tests() {
-        assert_eq!(math("5".to_string()), Some(5.0));
-        assert_eq!(math("2 + (3 * 4)".to_string()), Some(14.0));
-        assert_eq!(math("".to_string()), None);
+        assert_eq!(math("5".to_string(), &HashMap::new()), Some(5.0));
+        assert_eq!(math("2 + (3 * 4)".to_string(), &HashMap::new()), Some(14.0));
+        assert_eq!(math("".to_string(), &HashMap::new()), None);
     }
 
     #[test]
     fn test_add() {
-        assert_eq!(math("1 + 3".to_string()), Some(4.0));
-        assert_eq!(math("2 + 7 + 6".to_string()), Some(15.0));
-        assert_eq!(math("7 + -3".to_string()), Some(4.0));
-        assert_eq!(math("-9 + -10".to_string()), Some(-19.0));
-        assert_eq!(math("-9 + 10".to_string()), Some(1.0));
-        assert_eq!(math("9.8 + 11.1".to_string()), Some(20.9));
+        assert_eq!(math("1 + 3".to_string(), &HashMap::new()), Some(4.0));
+        assert_eq!(math("2 + 7 + 6".to_string(), &HashMap::new()), Some(15.0));
+        assert_eq!(math("7 + -3".to_string(), &HashMap::new()), Some(4.0));
+        assert_eq!(math("-9 + -10".to_string(), &HashMap::new()), Some(-19.0));
+        assert_eq!(math("-9 + 10".to_string(), &HashMap::new()), Some(1.0));
+        assert_eq!(math("9.8 + 11.1".to_string(), &HashMap::new()), Some(20.9));
     }
 
     #[test]
     fn test_subtract() {
-        assert_eq!(math("4 - 2".to_string()), Some(2.0));
-        assert_eq!(math("6 - 2 - 4".to_string()), Some(0.0));
-        assert_eq!(math("7 - -3".to_string()), Some(10.0));
-        assert_eq!(math("-4 - -5".to_string()), Some(1.0));
-        assert_eq!(math("-2 - 3".to_string()), Some(-5.0));
-        assert_eq!(math("8.3 - 2.2".to_string()), Some(8.3 - 2.2));
+        assert_eq!(math("4 - 2".to_string(), &HashMap::new()), Some(2.0));
+        assert_eq!(math("6 - 2 - 4".to_string(), &HashMap::new()), Some(0.0));
+        assert_eq!(math("7 - -3".to_string(), &HashMap::new()), Some(10.0));
+        assert_eq!(math("-4 - -5".to_string(), &HashMap::new()), Some(1.0));
+        assert_eq!(math("-2 - 3".to_string(), &HashMap::new()), Some(-5.0));
+        assert_eq!(math("8.3 - 2.2".to_string(), &HashMap::new()), Some(8.3 - 2.2));
     }
 
     #[test]
     fn test_multiply() {
-        assert_eq!(math("2 * 4".to_string()), Some(8.0));
-        assert_eq!(math("8 * 2 * 3".to_string()), Some(48.0));
-        assert_eq!(math("5 * -21".to_string()), Some(-105.0));
-        assert_eq!(math("-2 * -3".to_string()), Some(6.0));
-        assert_eq!(math("-3 * 4".to_string()), Some(-12.0));
-        assert_eq!(math("4.7 * 4.3".to_string()), Some(20.21));
+        assert_eq!(math("2 * 4".to_string(), &HashMap::new()), Some(8.0));
+        assert_eq!(math("8 * 2 * 3".to_string(), &HashMap::new()), Some(48.0));
+        assert_eq!(math("5 * -21".to_string(), &HashMap::new()), Some(-105.0));
+        assert_eq!(math("-2 * -3".to_string(), &HashMap::new()), Some(6.0));
+        assert_eq!(math("-3 * 4".to_string(), &HashMap::new()), Some(-12.0));
+        assert_eq!(math("4.7 * 4.3".to_string(), &HashMap::new()), Some(20.21));
     }
 
     #[test]
     fn test_divide() {
-        assert_eq!(math("5 / 2".to_string()), Some(2.5));
-        assert_eq!(math("5 / 4 / 8".to_string()), Some(0.15625));
-        assert_eq!(math("9 / -3".to_string()), Some(-3.0));
-        assert_eq!(math("-5 / -8".to_string()), Some(0.625));
-        assert_eq!(math("-4 / 10".to_string()), Some(-0.4));
-        assert_eq!(math("43.1 / 7.9".to_string()), Some(43.1 / 7.9));
+        assert_eq!(math("5 / 2".to_string(), &HashMap::new()), Some(2.5));
+        assert_eq!(math("5 / 4 / 8".to_string(), &HashMap::new()), Some(0.15625));
+        assert_eq!(math("9 / -3".to_string(), &HashMap::new()), Some(-3.0));
+        assert_eq!(math("-5 / -8".to_string(), &HashMap::new()), Some(0.625));
+        assert_eq!(math("-4 / 10".to_string(), &HashMap::new()), Some(-0.4));
+        assert_eq!(math("43.1 / 7.9".to_string(), &HashMap::new()), Some(43.1 / 7.9));
     }
 
     #[test]
     fn test_modulo() {
-        assert_eq!(math("3 % 2".to_string()), Some(1.0));
-        assert_eq!(math("6 % 8 % 9".to_string()), Some(6.0));
-        assert_eq!(math("5 % -3".to_string()), Some(5.0 % -3.0));
-        assert_eq!(math("-197 % -5".to_string()), Some(-2.0));
-        assert_eq!(math("-9 % 4".to_string()), Some(-9.0 % 4.0));
-        assert_eq!(math("547.43 % 4.2".to_string()), Some(547.43 % 4.2));
+        assert_eq!(math("3 % 2".to_string(), &HashMap::new()), Some(1.0));
+        assert_eq!(math("6 % 8 % 9".to_string(), &HashMap::new()), Some(6.0));
+        assert_eq!(math("5 % -3".to_string(), &HashMap::new()), Some(5.0 % -3.0));
+        assert_eq!(math("-197 % -5".to_string(), &HashMap::new()), Some(-2.0));
+        assert_eq!(math("-9 % 4".to_string(), &HashMap::new()), Some(-9.0 % 4.0));
+        assert_eq!(math("547.43 % 4.2".to_string(), &HashMap::new()), Some(547.43 % 4.2));
     }
 
     #[test]
     fn test_exponents() {
-        assert_eq!(math("2 ^ 3".to_string()), Some(8.0));
-        assert_eq!(math("3 ^ 2 ^ 2".to_string()), Some(81.0));
-        assert_eq!(math("5 ^ -4".to_string()), Some(0.0016));
-        assert_eq!(math("-4 ^ -3".to_string()), Some(-0.015625));
-        assert_eq!(math("-8 ^ 3".to_string()), Some(-512.0));
-        assert_eq!(math("7.9 ^ 4.8".to_string()), Some(7.9_f64.powf(4.8)));
+        assert_eq!(math("2 ^ 3".to_string(), &HashMap::new()), Some(8.0));
+        assert_eq!(math("3 ^ 2 ^ 2".to_string(), &HashMap::new()), Some(81.0));
+        assert_eq!(math("5 ^ -4".to_string(), &HashMap::new()), Some(0.0016));
+        assert_eq!(math("-4 ^ -3".to_string(), &HashMap::new()), Some(-0.015625));
+        assert_eq!(math("-8 ^ 3".to_string(), &HashMap::new()), Some(-512.0));
+        assert_eq!(math("7.9 ^ 4.8".to_string(), &HashMap::new()), Some(7.9_f64.powf(4.8)));
     }
 }

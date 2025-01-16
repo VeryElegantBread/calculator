@@ -17,6 +17,19 @@ $ calculator
 7.0
 -->
 ```
+In a continuous dialogue, you can set variables and they update as variables used to make them change.
+```
+$ calculator
+--> num1 = 9
+num1 = 9.0
+--> num2 = 7 + num1
+num2 = 16.0
+--> num1 = 10
+num1 = 10.0
+--> num2
+17.0
+-->
+```
 
 The current operations you can do:
 
