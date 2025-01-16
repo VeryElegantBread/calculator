@@ -25,7 +25,7 @@ fn math(base_equation: String, variables: &HashMap<String, String>) -> Option<f6
     let chars: Vec<char> = equation.chars().collect();
     for char_num in 0..chars.len() {
         let char = chars[char_num];
-        if ['+', '-', '*', '/', '%', '^'].iter().any(|&i| i == char) && chars[char_num + 1] == '_' {
+        if ['+', '-', '*', '/', '%', '^'].iter().any(|&i| i == char) && chars[char_num + 1] == '\\' {
             let num1;
             let num2;
             if let Some(value) = current_result {
@@ -35,7 +35,7 @@ fn math(base_equation: String, variables: &HashMap<String, String>) -> Option<f6
             } else {
                 return None;
             }
-            if let Some(value) = get_value(equation[char_num + 2..].split('_').next().expect("no second number found").to_string(), variables) {
+            if let Some(value) = get_value(equation[char_num + 2..].split('\\').next().expect("no second number found").to_string(), variables) {
                 num2 = value;
             } else {
                 return None;
@@ -71,8 +71,12 @@ fn math_loop() {
             let equation = input[split_input[0].len() + 3..].to_string();
             if let Some(value) = math(equation.to_string(), &variables) {
                 let variable_name = split_input[0];
-                variables.insert(variable_name.to_string(), equation);
-                println!("{} = {:?}", variable_name, value);
+                if variable_name.chars().any(|i| i == '\\') {
+                    println!("No backslashes in variable names.");
+                } else {
+                    variables.insert(variable_name.to_string(), equation);
+                    println!("{} = {:?}", variable_name, value);
+                }
             }
         } else if let Some(value) = math(input.to_string(), &variables) {
             println!("{:?}", value);
@@ -84,7 +88,7 @@ fn math_loop() {
 
 fn get_value(string: String, variables: &HashMap<String, String>) -> Option<f64> {
     if string.starts_with('(') {
-        math(string[1..string.len() - 1].to_string() + "_", variables)
+        math(string[1..string.len() - 1].to_string(), variables)
     } else if let Ok(float) = string.parse::<f64>() {
         Some(float)
     } else if let Some(value) = variables.get(&string) {
@@ -117,7 +121,7 @@ fn format_equation(base_equation: String) -> String {
     let mut parenthises: u8 = 0;
     for char in base_equation.chars() {
         if char == ' ' && parenthises == 0 {
-            equation.push('_');
+            equation.push('\\');
         } else {
             equation.push(char);
             if char == '(' {
@@ -127,7 +131,7 @@ fn format_equation(base_equation: String) -> String {
             }
         }
     }
-    equation.push('_');
+    equation.push('\\');
     equation
 }
 
