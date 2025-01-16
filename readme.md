@@ -30,6 +30,11 @@ num1 = 10.0
 17.0
 -->
 ```
+Default variables:
+
+| Name           | Value   |
+| -------------- | ------- |
+| pi             | 3.14159 |
 
 The current operations you can do:
 

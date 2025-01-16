@@ -4,14 +4,18 @@ use std::{collections::HashMap, env::args, io::{self, Write}};
 
 
 fn main() {
+    let mut variables: HashMap<String, String> = HashMap::from([
+        ("pi".to_string(), "3.14159".to_string()),
+    ]);
+
     let mut equation = String::new();
     for argument in args().skip(1) {
         equation = [equation, argument].join(" ");
     }
 
     if equation.is_empty() {
-        math_loop()
-    } else if let Some(value) = math(equation[1..].to_string(), &HashMap::new()) {
+        math_loop(&mut variables)
+    } else if let Some(value) = math(equation[1..].to_string(), &variables) {
         println!("{:?}", value);
     }
 }
@@ -53,8 +57,7 @@ fn math(base_equation: String, variables: &HashMap<String, String>) -> Option<f6
 
 
 
-fn math_loop() {
-    let mut variables: HashMap<String, String> = HashMap::new();
+fn math_loop(variables: &mut HashMap<String, String>) {
     loop {
         print!("--> ");
         io::stdout().flush().expect("Failed to flush stdout");
@@ -69,7 +72,7 @@ fn math_loop() {
         let split_input: Vec<_> = input.split(' ').collect();
         if split_input.len() > 2 && split_input[1] == "=" {
             let equation = input[split_input[0].len() + 3..].to_string();
-            if let Some(value) = math(equation.to_string(), &variables) {
+            if let Some(value) = math(equation.to_string(), variables) {
                 let variable_name = split_input[0];
                 if variable_name.chars().any(|i| i == '\\') {
                     println!("No backslashes in variable names.");
@@ -78,7 +81,7 @@ fn math_loop() {
                     println!("{} = {:?}", variable_name, value);
                 }
             }
-        } else if let Some(value) = math(input.to_string(), &variables) {
+        } else if let Some(value) = math(input.to_string(), variables) {
             println!("{:?}", value);
         }
     }
