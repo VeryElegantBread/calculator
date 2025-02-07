@@ -1,5 +1,16 @@
 # Calculator
 This is a calculator.
+## Installation
+### 1. Install rust
+`curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`
+### 2. Clone the repository
+`git clone https://github.com/VeryElegantBread/calculator/`
+### 3. Go into the project Directory
+`cd calculator`
+### 4. Build
+`cargo build --release`
+### Find the built file
+It should be at calculator/target/release/calculator
 ## Usage
 Run with an equation to get the result
 ```
